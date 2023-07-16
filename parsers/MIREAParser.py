@@ -518,8 +518,7 @@ class MIREAParser(BaseParser):
             self._specs[i]["bvi"] = 0
         coro = []
         for i in self._specs.keys():
-            coro.append(self.__parse_list(i))
-        await asyncio.gather(*coro)
+            await self.__parse_list(i)
 
         self._last_update = datetime.now()
 
