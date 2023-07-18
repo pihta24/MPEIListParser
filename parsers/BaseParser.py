@@ -105,7 +105,7 @@ class BaseParser:
                                 self._concurs_lists[working_dict[app_id][k][0]].remove(app_id)
                             del working_dict[app_id][k]
 
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(0.02)
         self._processing_lists = False
 
     async def process_update(self):

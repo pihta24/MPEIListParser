@@ -79,7 +79,15 @@ class MAIParser(BaseParser):
             async with session.get(self.base_url.format(prefix, f"_{num}")) as resp:
                 html = await resp.text()
                 bs = BeautifulSoup(html, "html.parser")
-                p = bs.find_all("p")[1]
+                while True:
+                    try:
+                        p = bs.find_all("p")[1]
+                    except IndexError:
+                        async with session.get(self.base_url.format(prefix, f"_{num}")) as resp:
+                            html = await resp.text()
+                            bs = BeautifulSoup(html, "html.parser")
+                    else:
+                        break
                 for i in p.text.lower().replace("\t", "").replace("\n\n", "\n").split("\n"):
                     if "количество мест" in i:
                         self._specs[num]["places"] = int(i.split(":")[1].strip())
