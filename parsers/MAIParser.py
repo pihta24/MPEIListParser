@@ -83,8 +83,9 @@ class MAIParser(BaseParser):
                     try:
                         p = bs.find_all("p")[1]
                     except IndexError:
-                        async with session.get(self.base_url.format(prefix, f"_{num}")) as resp:
-                            html = await resp.text()
+                        prefix = await self.__get_prefix(session)
+                        async with session.get(self.base_url.format(prefix, f"_{num}")) as new_resp:
+                            html = await new_resp.text()
                             bs = BeautifulSoup(html, "html.parser")
                     else:
                         break
