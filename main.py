@@ -109,8 +109,11 @@ async def main():
     asyncio.create_task(dp.start_polling())
 
     asyncio.create_task(schedule_task(mpei_parser.process_update, 3600))
+    await asyncio.sleep(5)
     asyncio.create_task(schedule_task(mirea_parser.process_update, 3600))
+    await asyncio.sleep(5)
     asyncio.create_task(schedule_task(stankin_parser.process_update, 3600))
+    await asyncio.sleep(5)
     asyncio.create_task(schedule_task(mai_parser.process_update, 3600))
 
 
