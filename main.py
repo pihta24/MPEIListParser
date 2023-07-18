@@ -61,8 +61,9 @@ async def handle_telegram(message: types.Message):
             else:
                 predict = f"*{j}* место в конкурсном списке после распределения" if j \
                     else "__*Поступил на более высокий приоритет*__"
-                if j <= places_base:
-                    predict += "\n__*Поступил на это направление*__"
+                if j:
+                    if j <= places_base:
+                        predict += "\n__*Поступил на это направление*__"
             answer += f"__{spec['name']}:__\n" \
                       f"Количество баллов с учётом ИД: _{i[1]}_\n" \
                       f"*{i[2]}* место в текущем конкурсном списке\n" \
