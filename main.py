@@ -86,7 +86,7 @@ async def handle_telegram(message: types.Message):
             else:
                 answer += f"Кол-во БВИшников: _{spec['bvi']}_\n\n"
         answer += f"Обновлено: _{parser.last_update.isoformat(' ', 'seconds')}_"
-        answer = answer.replace("-", r"\-").replace("(", r"\(").replace(")", r"\)")
+        answer = answer.replace("-", r"\-").replace("(", r"\(").replace(")", r"\)").replace(".", r"\.")
         await bot.send_message(message.chat.id, answer, types.ParseMode.MARKDOWN_V2)
 
 
