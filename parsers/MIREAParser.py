@@ -11,9 +11,7 @@
 #
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-import asyncio
 from datetime import datetime
-from enum import Enum
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -517,7 +515,6 @@ class MIREAParser(BaseParser):
         self._bvi.clear()
         for i in self._specs.keys():
             self._specs[i]["bvi"] = 0
-        coro = []
         for i in self._specs.keys():
             await self.__parse_list(i)
 

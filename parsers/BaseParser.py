@@ -41,7 +41,7 @@ class BaseParser:
     def last_update(self):
         return self._last_update
 
-    def get_applicant(self, app_id: int):
+    def get_applicant(self, app_id: str):
         if self._updating_lists:
             return None, None
         if app_id not in self._applicants:
@@ -84,7 +84,7 @@ class BaseParser:
                 else:
                     places_base = places - places_target - places_spec - places_sep - self._specs[i]["bvi"]
 
-                for j in range(places_base):
+                for j in range(min(places_base, len(self._concurs_lists[i]))):
                     app_id = self._concurs_lists[i][j]
                     while self._concurs_lists[i].count(app_id) != 1:
                         self._concurs_lists[i].remove(app_id)

@@ -18,7 +18,7 @@ from typing import Awaitable, Callable, Optional
 from aiogram import Bot, Dispatcher, types
 from aiorun import run
 
-from parsers import BaseParser, MPEIParser, MIREAParser, STANKINParser
+from parsers import BaseParser, MPEIParser, MIREAParser, STANKINParser, MAIParser
 
 API_TOKEN = environ.get("TELEGRAM_TOKEN", "")
 
@@ -34,13 +34,13 @@ async def schedule_task(coro: Callable[[], Awaitable], interval: int):
 
 
 async def handle_telegram(message: types.Message):
+    app_id = message.text.replace("-", "").replace(" ", "")
     for parser in parsers:
         answer = f"*{parser.name}:*\n"
         if parser.updating:
             answer += "Обновляем списки, попробуйте через несколько секунд"
             await bot.send_message(message.chat.id, answer, types.ParseMode.MARKDOWN_V2)
             continue
-        app_id = message.text
         applicant = parser.get_applicant(app_id)
         if applicant == (None, None):
             answer += "Абитуриент не найден"
@@ -100,13 +100,18 @@ async def main():
     mpei_parser = MPEIParser()
     mirea_parser = MIREAParser()
     stankin_parser = STANKINParser()
-    parsers = [mpei_parser, mirea_parser, stankin_parser]
+    mai_parser = MAIParser()
+
+    await mai_parser.init()
+
+    parsers = [mpei_parser, mirea_parser, stankin_parser, mai_parser]
 
     asyncio.create_task(dp.start_polling())
 
     asyncio.create_task(schedule_task(mpei_parser.process_update, 3600))
     asyncio.create_task(schedule_task(mirea_parser.process_update, 3600))
     asyncio.create_task(schedule_task(stankin_parser.process_update, 3600))
+    asyncio.create_task(schedule_task(mai_parser.process_update, 3600))
 
 
 async def shutdown_callback(loop):
