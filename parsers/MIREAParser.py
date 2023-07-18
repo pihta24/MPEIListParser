@@ -514,6 +514,7 @@ class MIREAParser(BaseParser):
         self._processing_lists = True
         self._applicants.clear()
         self._concurs_lists = {i: [] for i in self._specs.keys()}
+        self._bvi.clear()
         for i in self._specs.keys():
             self._specs[i]["bvi"] = 0
         coro = []
@@ -535,7 +536,7 @@ class MIREAParser(BaseParser):
                     table = bs.find("table")
                     for n, row in enumerate(table.find_all("tr", recursive=False), start=1):
                         cols = row.find_all("td")
-                        app_id = int(cols[1].text.replace("-", "").replace(" ", "").strip())
+                        app_id = cols[1].text.replace("-", "").replace(" ", "").strip()
                         priority = int(cols[2].text)
                         if priority == 1:
                             self._specs[num]["bvi"] += 1
@@ -548,7 +549,7 @@ class MIREAParser(BaseParser):
                 table = bs.find("table")
                 for n, row in enumerate(table.find_all("tr", recursive=False), start=1):
                     cols = row.find_all("td")
-                    app_id = int(cols[1].text.replace("-", "").replace(" ", "").strip())
+                    app_id = cols[1].text.replace("-", "").replace(" ", "").strip()
                     priority = int(cols[2].text)
                     if app_id in self._bvi:
                         continue

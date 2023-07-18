@@ -235,6 +235,7 @@ class MPEIParser(BaseParser):
         self._processing_lists = True
         self._applicants.clear()
         self._concurs_lists = {i: [] for i in self._specs.keys()}
+        self._bvi.clear()
         for i in self._specs.keys():
             self._specs[i]["bvi"] = 0
         coro = []
@@ -262,7 +263,7 @@ class MPEIParser(BaseParser):
                         cols = row.find_all("td")
                         if len(cols) not in [14, 15]:
                             break
-                        app_id = int(cols[0].text.split(":")[1].strip())
+                        app_id = cols[0].text.split(":")[1].strip()
                         priority = int(cols[10].text if list_type == Types.spec else cols[11].text)
                         if list_type == Types.bvi:
                             if priority == 1:

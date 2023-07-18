@@ -14,15 +14,15 @@
 import asyncio
 from copy import deepcopy
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 
 
 class BaseParser:
     name: str
 
     def __init__(self):
-        self._applicants: dict[int, dict[int, list[int]]] = dict()
-        self._concurs_lists: dict[int, list[int]] = dict()
+        self._applicants: dict[str, dict[int, list[Any]]] = dict()
+        self._concurs_lists: dict[Any, list[str]] = dict()
         self._specs = dict()
         self._bvi = list()
         self._updating_lists: bool = True
@@ -72,22 +72,37 @@ class BaseParser:
                 places_target = self._specs[i]["places_target"]
                 places_spec = self._specs[i]["places_spec"]
                 places_sep = self._specs[i]["places_sep"]
-                places_base = places - places_target - places_spec - places_sep - self._specs[i]["bvi"]
+                if "count" in self._specs[i]:
+                    count_target = self._specs[i]["count_target"]
+                    count_spec = self._specs[i]["count_spec"]
+                    count_sep = self._specs[i]["count_sep"]
+                    places_base = places \
+                                  - min(places_target, count_target) \
+                                  - min(places_spec, count_spec) \
+                                  - min(places_sep, count_sep) \
+                                  - self._specs[i]["bvi"]
+                else:
+                    places_base = places - places_target - places_spec - places_sep - self._specs[i]["bvi"]
 
                 for j in range(places_base):
                     app_id = self._concurs_lists[i][j]
+                    while self._concurs_lists[i].count(app_id) != 1:
+                        self._concurs_lists[i].remove(app_id)
+                        changed = True
                     if app_id in self._bvi:
                         changed = True
                         self._concurs_lists[i].remove(app_id)
                         continue
-                    priority = 0
+                    priority = max(working_dict[app_id].keys())
                     for k, v in working_dict[app_id].items():
                         if v[0] == i:
                             priority = k
+                            break
                     for k in range(priority + 1, max(working_dict[app_id].keys()) + 1):
                         if k in working_dict[app_id]:
                             changed = True
-                            self._concurs_lists[working_dict[app_id][k][0]].remove(app_id)
+                            while self._concurs_lists[working_dict[app_id][k][0]].count(app_id) != 0:
+                                self._concurs_lists[working_dict[app_id][k][0]].remove(app_id)
                             del working_dict[app_id][k]
 
                 await asyncio.sleep(0.01)

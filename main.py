@@ -18,7 +18,7 @@ from typing import Awaitable, Callable, Optional
 from aiogram import Bot, Dispatcher, types
 from aiorun import run
 
-from parsers import BaseParser, MPEIParser, MIREAParser
+from parsers import BaseParser, MPEIParser, MIREAParser, STANKINParser
 
 API_TOKEN = environ.get("TELEGRAM_TOKEN", "")
 
@@ -34,17 +34,13 @@ async def schedule_task(coro: Callable[[], Awaitable], interval: int):
 
 
 async def handle_telegram(message: types.Message):
-    if not message.text.isnumeric():
-        await message.answer("Принимаем только цифры")
-        return
-
     for parser in parsers:
         answer = f"*{parser.name}:*\n"
         if parser.updating:
             answer += "Обновляем списки, попробуйте через несколько секунд"
             await bot.send_message(message.chat.id, answer, types.ParseMode.MARKDOWN_V2)
             continue
-        app_id = int(message.text)
+        app_id = message.text
         applicant = parser.get_applicant(app_id)
         if applicant == (None, None):
             answer += "Абитуриент не найден"
@@ -65,6 +61,8 @@ async def handle_telegram(message: types.Message):
             else:
                 predict = f"*{j}* место в конкурсном списке после распределения" if j \
                     else "__*Поступил на более высокий приоритет*__"
+                if j <= places_base:
+                    predict += "\n__*Поступил на это направление*__"
             answer += f"__{spec['name']}:__\n" \
                       f"Количество баллов с учётом ИД: _{i[1]}_\n" \
                       f"*{i[2]}* место в текущем конкурсном списке\n" \
@@ -73,8 +71,19 @@ async def handle_telegram(message: types.Message):
                       f"Особая квота: _{places_spec}_\n" \
                       f"Отдельная квота: _{places_sep}_\n" \
                       f"Целевая квота: _{places_target}_\n" \
-                      f"Бюджетных мест в общем конкурсе: _{places_base}_\n" \
-                      f"Кол-во БВИшников: _{spec['bvi']}_\n\n"
+                      f"Бюджетных мест в общем конкурсе: _{places_base}_\n"
+            if "count" in spec:
+                count = spec["count"]
+                count_target = spec["count_target"]
+                count_spec = spec["count_spec"]
+                count_sep = spec["count_sep"]
+                answer += f"Кол-во заявлений всего: _{count}_\n" \
+                          f"Кол-во заявлений по особой квоте: _{count_spec}_\n" \
+                          f"Кол-во заявлений по отдельной квоте: _{count_sep}_\n" \
+                          f"Кол-во заявлений по целевой квоте: _{count_target}_\n" \
+                          f"Кол-во БВИшников: _{spec['bvi']}_\n\n"
+            else:
+                answer += f"Кол-во БВИшников: _{spec['bvi']}_\n\n"
         answer += f"Обновлено: _{parser.last_update.isoformat(' ', 'seconds')}_"
         answer = answer.replace("-", r"\-").replace("(", r"\(").replace(")", r"\)")
         await bot.send_message(message.chat.id, answer, types.ParseMode.MARKDOWN_V2)
@@ -89,12 +98,14 @@ async def main():
 
     mpei_parser = MPEIParser()
     mirea_parser = MIREAParser()
-    parsers = [mpei_parser, mirea_parser]
+    stankin_parser = STANKINParser()
+    parsers = [mpei_parser, mirea_parser, stankin_parser]
 
     asyncio.create_task(dp.start_polling())
 
     asyncio.create_task(schedule_task(mpei_parser.process_update, 3600))
     asyncio.create_task(schedule_task(mirea_parser.process_update, 3600))
+    asyncio.create_task(schedule_task(stankin_parser.process_update, 3600))
 
 
 async def shutdown_callback(loop):
