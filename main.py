@@ -52,6 +52,7 @@ async def run_update(parser: BaseParser):
 
 async def send_message(chat_id, message):
     global count
+    message = message.replace("-", r"\-").replace("(", r"\(").replace(")", r"\)").replace(".", r"\.")
     while True:
         try:
             if count >= 26:
@@ -132,7 +133,6 @@ async def handle_telegram(message: types.Message):
             else:
                 answer += f"Кол-во БВИшников: _{spec['bvi'] if 'count_bvi' not in spec.keys() else spec['count_bvi']}_\n\n"
         answer += f"Обновлено: _{parser.last_update.isoformat(' ', 'seconds')}_"
-        answer = answer.replace("-", r"\-").replace("(", r"\(").replace(")", r"\)").replace(".", r"\.")
         await send_message(message.chat.id, answer)
     print(f"request completed for: {message.text}")
 
