@@ -80,7 +80,11 @@ async def handle_telegram(message: types.Message):
     for parser in parsers:
         answer = f"*{parser.name}:*\n"
         if parser.updating:
-            answer += "Обновляем списки, попробуйте через несколько секунд"
+            if parser.last_update_failed:
+                answer += "Произошла ошибка при обновлении\n" \
+                          "Попробуйте через несколько минут"
+            else:
+                answer += "Обновляем списки, попробуйте через несколько секунд"
             await send_message(message.chat.id, answer)
             continue
         applicant = parser.get_applicant(app_id)
