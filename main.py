@@ -136,9 +136,9 @@ async def handle_telegram(message: types.Message):
 async def main():
     global bot, dp, parsers
 
-    # bot = Bot(token=API_TOKEN)
-    # dp = Dispatcher(bot)
-    # dp.register_message_handler(handle_telegram)
+    bot = Bot(token=API_TOKEN)
+    dp = Dispatcher(bot)
+    dp.register_message_handler(handle_telegram)
 
     mpei_parser = MPEIParser()
     mirea_parser = MIREAParser()
@@ -151,16 +151,16 @@ async def main():
 
     parsers = [mpei_parser, mirea_parser, stankin_parser, mai_parser, mtuci_parser]
 
-    # asyncio.create_task(dp.start_polling())
-    #
-    # asyncio.create_task(schedule_task(mpei_parser.process_update, 3600))
-    # await asyncio.sleep(5)
-    # asyncio.create_task(schedule_task(mirea_parser.process_update, 3600))
-    # await asyncio.sleep(5)
-    # asyncio.create_task(schedule_task(stankin_parser.process_update, 3600))
-    # await asyncio.sleep(5)
-    # asyncio.create_task(schedule_task(mai_parser.process_update, 3600))
-    # await asyncio.sleep(5)
+    asyncio.create_task(dp.start_polling())
+
+    asyncio.create_task(schedule_task(mpei_parser.process_update, 3600))
+    await asyncio.sleep(5)
+    asyncio.create_task(schedule_task(mirea_parser.process_update, 3600))
+    await asyncio.sleep(5)
+    asyncio.create_task(schedule_task(stankin_parser.process_update, 3600))
+    await asyncio.sleep(5)
+    asyncio.create_task(schedule_task(mai_parser.process_update, 3600))
+    await asyncio.sleep(5)
     asyncio.create_task(schedule_task(mtuci_parser.process_update, 3600))
 
 
