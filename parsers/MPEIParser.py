@@ -240,8 +240,8 @@ class MPEIParser(BaseParser):
             self._specs[i]["bvi"] = 0
         coro = []
         for i in self._specs.keys():
-            coro.append(self.__parse_list(i, Types.base))
-            coro.append(self.__parse_list(i, Types.bvi))
+            coro.append(self._parse_list(i, Types.base))
+            coro.append(self._parse_list(i, Types.bvi))
         await asyncio.gather(*coro)
 
         self._last_update = datetime.now()
@@ -250,7 +250,7 @@ class MPEIParser(BaseParser):
             self._applicants[i] = dict(sorted(self._applicants[i].items(), key=lambda x: x[0]))
         self._updating_lists = False
 
-    async def __parse_list(self, num: int, list_type: Types):
+    async def _parse_list(self, num: int, list_type: Types):
         async with aiohttp.ClientSession() as session:
             match list_type:
                 case Types.bvi | Types.base:

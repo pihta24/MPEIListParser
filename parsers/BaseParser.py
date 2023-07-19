@@ -12,6 +12,7 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import asyncio
+import os
 from copy import deepcopy
 from datetime import datetime
 from typing import Optional, Any
@@ -19,6 +20,7 @@ from typing import Optional, Any
 
 class BaseParser:
     name: str
+    update_type: str
 
     def __init__(self):
         self._applicants: dict[str, dict[int, list[Any]]] = dict()
@@ -28,6 +30,8 @@ class BaseParser:
         self._updating_lists: bool = True
         self._processing_lists: bool = True
         self._last_update: Optional[datetime] = None
+        self.last_update_failed = False
+        self._last_update_started = None
 
     @property
     def updating(self):
@@ -40,6 +44,14 @@ class BaseParser:
     @property
     def last_update(self):
         return self._last_update
+
+    @property
+    def last_update_started(self):
+        return self._last_update_started
+
+    @property
+    def applicants(self):
+        return self._applicants
 
     def get_applicant(self, app_id: str):
         if self._updating_lists:
@@ -58,7 +70,30 @@ class BaseParser:
             return self._specs[spec_id]
 
     async def update_lists(self):
-        raise NotImplemented
+        self._updating_lists = True
+        self._processing_lists = True
+        self._applicants.clear()
+        self._concurs_lists = {i: [] for i in self._specs.keys()}
+        self._bvi.clear()
+        for i in self._specs.keys():
+            self._specs[i]["bvi"] = 0
+        match self.update_type:
+            case "parallel":
+                coro = []
+                for i in self._specs.keys():
+                    coro.append(self._parse_list(i))
+                await asyncio.gather(*coro)
+            case "series":
+                for i in self._specs.keys():
+                    await self._parse_list(i)
+            case _:
+                raise NotImplemented("Implement update_lists or set update_type")
+
+        self._last_update = datetime.now()
+
+        for i in self._applicants.keys():
+            self._applicants[i] = dict(sorted(self._applicants[i].items(), key=lambda x: x[0]))
+        self._updating_lists = False
 
     async def process_concurs_lists(self):
         self._processing_lists = True
@@ -109,5 +144,9 @@ class BaseParser:
         self._processing_lists = False
 
     async def process_update(self):
+        self._last_update_started = datetime.now()
         await self.update_lists()
         await self.process_concurs_lists()
+
+    async def _parse_list(self, num: Any):
+        raise NotImplemented

@@ -11,7 +11,6 @@
 #
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-from datetime import datetime
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -21,6 +20,7 @@ from parsers.BaseParser import BaseParser
 
 class MIREAParser(BaseParser):
     name = "РТУ МИРЭА"
+    update_type = "series"
 
     def __init__(self):
         super().__init__()
@@ -507,24 +507,7 @@ class MIREAParser(BaseParser):
             }
         }
 
-    async def update_lists(self):
-        self._updating_lists = True
-        self._processing_lists = True
-        self._applicants.clear()
-        self._concurs_lists = {i: [] for i in self._specs.keys()}
-        self._bvi.clear()
-        for i in self._specs.keys():
-            self._specs[i]["bvi"] = 0
-        for i in self._specs.keys():
-            await self.__parse_list(i)
-
-        self._last_update = datetime.now()
-
-        for i in self._applicants.keys():
-            self._applicants[i] = dict(sorted(self._applicants[i].items(), key=lambda x: x[0]))
-        self._updating_lists = False
-
-    async def __parse_list(self, num: int):
+    async def _parse_list(self, num: int):
         async with aiohttp.ClientSession() as session:
             if self._specs[num]["bvi_url"]:
                 async with session.get(self._specs[num]["bvi_url"]) as resp:

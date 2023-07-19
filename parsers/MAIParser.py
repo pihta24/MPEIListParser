@@ -11,8 +11,6 @@
 #
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-import asyncio
-from datetime import datetime
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -24,6 +22,7 @@ class MAIParser(BaseParser):
     base_url = "https://public.mai.ru/priem/rating/data/{}_1_l1_p1_f1{}.html"
     prefix_url = "https://priem.mai.ru/rating/"
     name = "МАИ"
+    update_type = "parallel"
 
     def __init__(self):
         super().__init__()
@@ -54,26 +53,7 @@ class MAIParser(BaseParser):
                                                               "count_sep": 0,
                                                               "bvi": 0}
 
-    async def update_lists(self):
-        self._updating_lists = True
-        self._processing_lists = True
-        self._applicants.clear()
-        self._concurs_lists = {i: [] for i in self._specs.keys()}
-        self._bvi.clear()
-        for i in self._specs.keys():
-            self._specs[i]["bvi"] = 0
-        coro = []
-        for i in self._specs.keys():
-            coro.append(self.__parse_list(i))
-        await asyncio.gather(*coro)
-
-        self._last_update = datetime.now()
-
-        for i in self._applicants.keys():
-            self._applicants[i] = dict(sorted(self._applicants[i].items(), key=lambda x: x[0]))
-        self._updating_lists = False
-
-    async def __parse_list(self, num: str):
+    async def _parse_list(self, num: str):
         async with aiohttp.ClientSession() as session:
             prefix = await self.__get_prefix(session)
             async with session.get(self.base_url.format(prefix, f"_{num}")) as resp:

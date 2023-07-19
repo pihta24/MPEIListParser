@@ -271,7 +271,7 @@ class STANKINParser(BaseParser):
 
         coro = []
         for i in self._specs.keys():
-            coro.append(self.__parse_list(i))
+            coro.append(self._parse_list(i))
         await asyncio.gather(*coro)
 
         self._last_update = datetime.now()
@@ -280,7 +280,7 @@ class STANKINParser(BaseParser):
             self._applicants[i] = dict(sorted(self._applicants[i].items(), key=lambda x: x[0]))
         self._updating_lists = False
 
-    async def __parse_list(self, num: str):
+    async def _parse_list(self, num: str):
         async with aiohttp.ClientSession() as session:
             for i in range(1, (self._specs[num]["count"] // 50 + 1) if self._specs[num]["count"] % 50 == 0
                            else (self._specs[num]["count"] // 50 + 2)):
