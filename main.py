@@ -150,7 +150,7 @@ async def main():
     mai_parser = MAIParser()
     mtuci_parser = MTUCIParser()
 
-    # await mai_parser.init()
+    await mai_parser.init()
     await mtuci_parser.init()
 
     parsers = [mpei_parser, mirea_parser, stankin_parser, mai_parser, mtuci_parser]
