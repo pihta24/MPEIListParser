@@ -147,6 +147,7 @@ class BaseParser:
         self._last_update_started = datetime.now()
         await self.update_lists()
         await self.process_concurs_lists()
+        self.last_update_failed = False
 
     async def _parse_list(self, num: Any):
         raise NotImplemented
