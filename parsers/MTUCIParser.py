@@ -25,10 +25,11 @@ class MTUCIParser(BaseParser):
 
     def __init__(self):
         super().__init__()
+        self.cookie = "__jhash_=890;__hash__=f6a882200d1db1ef97599418d9caea2c"
 
     async def init(self):
         async with aiohttp.ClientSession() as session:
-            async with session.get(self.specs_url) as resp:
+            async with session.get(self.specs_url, headers={"Cookie": self.cookie}) as resp:
                 html = await resp.text()
                 bs = BeautifulSoup(html, "html.parser")
                 for i, j in enumerate(bs.find("div", {"class": "body-content"}).find_all("a")):
@@ -42,19 +43,21 @@ class MTUCIParser(BaseParser):
 
     async def _parse_list(self, num: str):
         async with aiohttp.ClientSession() as session:
-            async with session.get(self._specs[num]["url"]) as resp:
+            async with session.get(self._specs[num]["url"], headers={"Cookie": self.cookie}) as resp:
                 html = await resp.text()
                 bs = BeautifulSoup(html, "html.parser")
-
-                span = bs.find("span", {"title": "Бюджетное финансирование"})
-                self._specs[num]["places"] = int(span.text.strip())
-                span = bs.find("span", {"title": "Целевое обучение"})
-                self._specs[num]["places_target"] = int(span.text.strip())
-                span = bs.find("span", {"title": "Особая квота"})
-                self._specs[num]["places_spec"] = int(span.text.strip())
-                span = bs.find("span", {"title": "Отдельная квота"})
-                self._specs[num]["places_sep"] = int(span.text.strip())
-                self._specs[num]["count_bvi"] = 0
+                try:
+                    span = bs.find("span", {"title": "Бюджетное финансирование"})
+                    self._specs[num]["places"] = int(span.text.strip())
+                    span = bs.find("span", {"title": "Целевое обучение"})
+                    self._specs[num]["places_target"] = int(span.text.strip())
+                    span = bs.find("span", {"title": "Особая квота"})
+                    self._specs[num]["places_spec"] = int(span.text.strip())
+                    span = bs.find("span", {"title": "Отдельная квота"})
+                    self._specs[num]["places_sep"] = int(span.text.strip())
+                    self._specs[num]["count_bvi"] = 0
+                except:
+                    breakpoint()
 
                 table = bs.find("table")
                 parsed_table = [[col.text for col in row.find_all("td")] for row in table.find_all("tr")]

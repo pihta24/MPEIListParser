@@ -68,13 +68,13 @@ async def send_message(chat_id, message):
 
 
 async def handle_telegram(message: types.Message):
-    if message.text == "stats":
+    if message.text.lower() == "stats":
         answer = ""
         for parser in parsers:
-            answer += f"{parser.name}: \n" \
+            answer += f"{parser.name}:\n" \
                       f"Last update started: {parser.last_update_started}\n" \
-                      f"Last update failed: {parser.last_update_failed}" \
-                      f"Last update: {parser.last_update}\n"
+                      f"Last update failed: {parser.last_update_failed}\n" \
+                      f"Last update: {parser.last_update}\n\n"
         await send_message(message.chat.id, answer)
         return
     app_id = message.text.replace("-", "").replace(" ", "")
@@ -157,18 +157,18 @@ async def main():
 
     asyncio.create_task(dp.start_polling())
 
-    asyncio.create_task(schedule_task(mpei_parser.process_update, 3600))
+    asyncio.create_task(run_update(mpei_parser))
     await asyncio.sleep(5)
-    asyncio.create_task(schedule_task(mirea_parser.process_update, 3600))
+    asyncio.create_task(run_update(mirea_parser))
     await asyncio.sleep(5)
-    asyncio.create_task(schedule_task(stankin_parser.process_update, 3600))
+    asyncio.create_task(run_update(stankin_parser))
     await asyncio.sleep(5)
-    asyncio.create_task(schedule_task(mai_parser.process_update, 3600))
+    asyncio.create_task(run_update(mai_parser))
     await asyncio.sleep(5)
-    asyncio.create_task(schedule_task(mtuci_parser.process_update, 3600))
+    asyncio.create_task(run_update(mtuci_parser))
 
 
-async def shutdown_callback(loop):
+async def shutdown_callback(_):
     if dp is not None:
         dp.stop_polling()
         await dp.wait_closed()
@@ -180,3 +180,7 @@ async def shutdown_callback(loop):
 
 if __name__ == '__main__':
     run(main(), shutdown_callback=shutdown_callback)
+
+
+# Направление подготовки: \d+\.\d+\.\d+ «\D+» – (\d+) местa?
+# Поступающие на места особой квоты приёма лиц, имеющих особые права \((\d+) места?\)[^\d]*(\d.+ (Нет)|(Да))
